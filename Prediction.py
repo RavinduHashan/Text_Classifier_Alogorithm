@@ -112,39 +112,60 @@ def prediction(reviews, itemType):
                 neg_count += 1
         return neg_count
 
-    def count(Feature):
-        if(Feature):
-            Feature = cv.transform(Feature).toarray()
-            PredictFeature = loaded_model.predict(Feature)
-            pos_count_Feature = p(PredictFeature)
-            neg_count_Feature = n(PredictFeature)
-            total_count = pos_count_Feature + neg_count_Feature
-            pos_ratio = int((pos_count_Feature / total_count) * 100)
-            neg_ratio = int((neg_count_Feature / total_count) * 100)
-            return pos_ratio, neg_ratio
-        else:
-            pos_ratio = 0
-            neg_ratio = 0
-            return pos_ratio, neg_ratio
-        
-    count = count(Feature1)
-    pos_ratio1 = count[0]
-    neg_ratio1 = count[1]
+
+    if(Feature1):
+        Feature1 = cv.transform(Feature1).toarray()
+        PredictFeature1 = loaded_model.predict(Feature1)
+        pos_count_Feature1 = p(PredictFeature1)
+        neg_count_Feature1 = n(PredictFeature1)
+        total_count1 = pos_count_Feature1 + neg_count_Feature1
+        pos_ratio1 = int((pos_count_Feature1 / total_count1) * 100)
+        neg_ratio1 = int((neg_count_Feature1 / total_count1) * 100)
     
-    count = count(Feature2)
-    pos_ratio2 = count[0]
-    neg_ratio2 = count[1]
+    else:
+        pos_ratio1 = 0
+        neg_ratio1 = 0
     
-    count = count(Feature3)
-    pos_ratio3 = count[0]
-    neg_ratio3 = count[1]
+    if(Feature2):
+        Feature2 = cv.transform(Feature2).toarray()
+        PredictFeature2 = loaded_model.predict(Feature2)
+        pos_count_Feature2 = p(PredictFeature2)
+        neg_count_Feature2 = n(PredictFeature2)
+        total_count2 = pos_count_Feature2 + neg_count_Feature2
+        pos_ratio2 = int((pos_count_Feature2 / total_count2) * 100)
+        neg_ratio2 = int((neg_count_Feature2 / total_count2) * 100)
     
-    count = count(corpus)
-    pos_ratio_Overall = count[0]
-    neg_ratio_Overall = count[1]
-    pos_count_Overall = pos_ratio1 + pos_ratio2 + pos_ratio3
-    neg_count_Overall = neg_ratio1 + neg_ratio2 + neg_ratio3
-    total_count_Overall = pos_count_Overall + neg_count_Overall 
+    else:
+        pos_ratio2 = 0
+        neg_ratio2 = 0
+    
+    
+    if(Feature3):
+        Feature3 = cv.transform(Feature3).toarray()
+        PredictFeature3 = loaded_model.predict(Feature3)
+        pos_count_Feature3 = p(PredictFeature3)
+        neg_count_Feature3 = n(PredictFeature3)
+        total_count3 = pos_count_Feature3 + neg_count_Feature3
+        pos_ratio3 = int((pos_count_Feature3 / total_count3) * 100)
+        neg_ratio3 = int((neg_count_Feature3 / total_count3) * 100)
+    
+    else:
+        pos_ratio3 = 0
+        neg_ratio3 = 0
+    
+    if(corpus):
+        Overall = cv.transform(corpus).toarray()
+        PredictOverall = loaded_model.predict(Overall)
+        pos_count_Overall = p(PredictOverall)
+        neg_count_Overall = n(PredictOverall)
+        total_count_Overall = pos_count_Overall + neg_count_Overall
+        pos_ratio_Overall = int((pos_count_Overall / total_count_Overall) * 100)
+        neg_ratio_Overall = int((neg_count_Overall / total_count_Overall) * 100)
+    
+    else:
+        pos_ratio_Overall = 0
+        neg_ratio_Overall = 0
+    
 
     client = pymongo.MongoClient("mongodb+srv://Ravindu:Ravindu1234@cluster01.aco7h.mongodb.net/test?retryWrites=true&w=majority")
     db = client['test']
@@ -163,6 +184,7 @@ def prediction(reviews, itemType):
                 "name": featureOne,
                 "positive": pos_ratio1,
                 "negative": neg_ratio1,
+           
             },
             "featureTwo": {
                 "name": featureTwo,
