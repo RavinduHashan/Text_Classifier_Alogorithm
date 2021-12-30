@@ -28,8 +28,10 @@ def prediction(reviews, itemType):
         ps = PorterStemmer() 
         all_stopwords = stopwords.words('english')
         all_stopwords.remove('not')
-        review = [ps.stem(word) for word in review if not word in set(all_stopwords)]
-        review = [lemmatizer.lemmatize(word) for word in review if not word in set(all_stopwords)]
+        review = [ps.stem(word) 
+                  for word in review if not word in set(all_stopwords)]
+        review = [lemmatizer.lemmatize(word) 
+                  for word in review if not word in set(all_stopwords)]
         review = ' '.join(review)
         fitCorpus.append(review)
     
@@ -88,103 +90,93 @@ def prediction(reviews, itemType):
             Feature2.append(comment)
         if z:
             Feature3.append(comment)
+            
+    cv = CountVectorizer(max_features = 1500)
+    cv.fit_transform(fitCorpus).toarray()
+    
+    def p(x):
+        pos_list = []
+        pos_count = 0
+        for i in x:
+            if (i == 'pos'):
+                pos_list.append(i)
+                pos_count += 1
+        return pos_count
 
-    if(Feature1 and Feature2 and Feature3):
+    def n(y):
+        neg_list = []
+        neg_count = 0
+        for i in y:
+            if (i == 'neg'):
+                neg_list.append(i)
+                neg_count += 1
+        return neg_count
+
+    def count(Feature):
+        if(Feature):
+            Feature = cv.transform(Feature).toarray()
+            PredictFeature = loaded_model.predict(Feature)
+            pos_count_Feature = p(PredictFeature)
+            neg_count_Feature = n(PredictFeature)
+            total_count = pos_count_Feature + neg_count_Feature
+            pos_ratio = int((pos_count_Feature / total_count) * 100)
+            neg_ratio = int((neg_count_Feature / total_count) * 100)
+            return pos_ratio, neg_ratio
+        else:
+            pos_ratio = 0
+            neg_ratio = 0
+            return pos_ratio, neg_ratio
         
-        cv = CountVectorizer(max_features = 1500)
-        cv.fit_transform(fitCorpus).toarray()
+    count = count(Feature1)
+    pos_ratio1 = count[0]
+    neg_ratio1 = count[1]
+    
+    count = count(Feature2)
+    pos_ratio2 = count[0]
+    neg_ratio2 = count[1]
+    
+    count = count(Feature3)
+    pos_ratio3 = count[0]
+    neg_ratio3 = count[1]
+    
+    count = count(corpus)
+    pos_ratio_Overall = count[0]
+    neg_ratio_Overall = count[1]
+    pos_count_Overall = pos_ratio1 + pos_ratio2 + pos_ratio3
+    neg_count_Overall = neg_ratio1 + neg_ratio2 + neg_ratio3
+    total_count_Overall = pos_count_Overall + neg_count_Overall 
 
-        Overall = cv.transform(corpus).toarray()
-        Feature1 = cv.transform(Feature1).toarray()
-        Feature2 = cv.transform(Feature2).toarray()
-        Feature3 = cv.transform(Feature3).toarray()
-        PredictOverall = loaded_model.predict(Overall)
-        PredictFeature1 = loaded_model.predict(Feature1)
-        PredictFeature2 = loaded_model.predict(Feature2)
-        PredictFeature3 = loaded_model.predict(Feature3)
+    client = pymongo.MongoClient("mongodb+srv://Ravindu:Ravindu1234@cluster01.aco7h.mongodb.net/test?retryWrites=true&w=majority")
+    db = client['test']
+    collection = db["test"]
 
-        def p(x):
-            pos_list = []
-            pos_count = 0
-            for i in x:
-                if (i == 'pos'):
-                    pos_list.append(i)
-                    pos_count += 1
-            return pos_count
-
-        def n(y):
-            neg_list = []
-            neg_count = 0
-            for i in y:
-                if (i == 'neg'):
-                    neg_list.append(i)
-                    neg_count += 1
-            return neg_count
-
-        pos_count_Overall = p(PredictOverall)
-        neg_count_Overall = n(PredictOverall)
-        pos_count_Feature1 = p(PredictFeature1)
-        neg_count_Feature1 = n(PredictFeature1)
-        pos_count_Feature2 = p(PredictFeature2)
-        neg_count_Feature2 = n(PredictFeature2)
-        pos_count_Feature3 = p(PredictFeature3)
-        neg_count_Feature3 = n(PredictFeature3)
-        
-        print(pos_count_Overall)
-        print(neg_count_Overall)
-
-        total_count_Overall = pos_count_Overall + neg_count_Overall
-        pos_ratio_Overall = int(
-            (pos_count_Overall / total_count_Overall) * 100)
-        neg_ratio_Overall = int(
-            (neg_count_Overall / total_count_Overall) * 100)
-
-        total_count1 = pos_count_Feature1 + neg_count_Feature1
-        pos_ratio1 = int((pos_count_Feature1 / total_count1) * 100)
-        neg_ratio1 = int((neg_count_Feature1 / total_count1) * 100)
-
-        total_count2 = pos_count_Feature2 + neg_count_Feature2
-        pos_ratio2 = int((pos_count_Feature2 / total_count2) * 100)
-        neg_ratio2 = int((neg_count_Feature2 / total_count2) * 100)
-
-        total_count3 = pos_count_Feature3 + neg_count_Feature3
-        pos_ratio3 = int((pos_count_Feature3 / total_count3) * 100)
-        neg_ratio3 = int((neg_count_Feature3 / total_count3) * 100)
-
-        client = pymongo.MongoClient(
-            "mongodb+srv://Ravindu:Ravindu1234@cluster01.aco7h.mongodb.net/test?retryWrites=true&w=majority")
-        db = client['test']
-        collection = db["test"]
-
-        post = {
-            "item": item,
-            "positive": pos_ratio_Overall,
-            "negative": neg_ratio_Overall,
-            "positiveCount": pos_count_Overall,
-            "negativeCount": neg_count_Overall,
-            "featuresCount": 3,
-            "totalCount": total_count_Overall,
-            "features": {
-                "featureOne": {
-                    "name": featureOne,
-                    "positive": pos_ratio1,
-                    "negative": neg_ratio1,
-                },
-                "featureTwo": {
-                    "name": featureTwo,
-                    "positive": pos_ratio2,
-                    "negative": neg_ratio2,
-                },
-                "featureThree": {
-                    "name": featureThree,
-                    "positive": pos_ratio3,
-                    "negative": neg_ratio3,
-                }
+    post = {
+        "item": item,
+        "positive": pos_ratio_Overall,
+        "negative": neg_ratio_Overall,
+        "positiveCount": pos_count_Overall,
+        "negativeCount": neg_count_Overall,
+        "featuresCount": 3,
+        "totalCount": total_count_Overall,
+        "features": {
+            "featureOne": {
+                "name": featureOne,
+                "positive": pos_ratio1,
+                "negative": neg_ratio1,
+            },
+            "featureTwo": {
+                "name": featureTwo,
+                "positive": pos_ratio2,
+                "negative": neg_ratio2,
+            },
+            "featureThree": {
+                "name": featureThree,
+                "positive": pos_ratio3,
+                "negative": neg_ratio3,
             }
-
         }
-        #"date": datetime.datetime.utcnow()
-        collection.insert_one(post).inserted_id
-        print(post)
-    else:
-        print("Features are not found")
+
+    }
+    #"date": datetime.datetime.utcnow()
+    collection.insert_one(post).inserted_id
+    print(post)
